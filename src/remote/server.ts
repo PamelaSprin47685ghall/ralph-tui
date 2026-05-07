@@ -65,7 +65,8 @@ import type { ExecutionEngine, EngineEvent } from '../engine/index.js';
 import type { TrackerPlugin } from '../plugins/trackers/types.js';
 import type { RalphConfig } from '../config/types.js';
 import { summarizeTokenUsageFromOutput } from '../plugins/agents/usage.js';
-import { ParallelExecutor, analyzeTaskGraph, shouldRunParallel } from '../parallel/index.js';
+import { ParallelExecutorDAG } from '../parallel-dag/executor.js';
+import { analyzeTaskGraph, shouldRunParallel } from '../parallel/index.js';
 import type { ParallelEvent } from '../parallel/events.js';
 
 /**
@@ -113,8 +114,8 @@ interface ClientState {
 interface OrchestrationSession {
   /** Unique session ID */
   id: string;
-  /** ParallelExecutor instance */
-  executor: ParallelExecutor;
+  /** ParallelExecutorDAG instance */
+  executor: ParallelExecutorDAG;
   /** Client ID that started the orchestration */
   clientId: string;
   /** Unsubscribe function for parallel events */
@@ -1413,9 +1414,9 @@ export class RemoteServer {
         return;
       }
 
-      // Create ParallelExecutor with validated options
+      // Create ParallelExecutorDAG with validated options
       // Pass filteredTaskIds so executor only schedules those tasks
-      const executor = new ParallelExecutor(
+      const executor = new ParallelExecutorDAG(
         this.options.baseConfig,
         this.options.tracker,
         {

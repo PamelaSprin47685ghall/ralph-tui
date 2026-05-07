@@ -42,7 +42,7 @@ import {
   type PersistedSessionState,
 } from '../session/index.js';
 import { ExecutionEngine } from '../engine/index.js';
-import { ParallelExecutor, analyzeTaskGraph, shouldRunParallel, recommendParallelism } from '../parallel/index.js';
+import { ParallelExecutorDAG, analyzeTaskGraph, shouldRunParallel, recommendParallelism } from '../parallel-dag/index.js';
 import { createAiResolver } from '../parallel/ai-resolver.js';
 import type {
   WorkerDisplayState,
@@ -2216,7 +2216,7 @@ interface ParallelTuiRunResult {
 }
 
 async function runParallelWithTui(
-  parallelExecutor: ParallelExecutor,
+  parallelExecutor: ParallelExecutorDAG,
   persistedState: PersistedSessionState,
   config: RalphConfig,
   initialTasks: TrackerTask[],
@@ -3713,7 +3713,7 @@ export async function executeRunCommand(args: string[]): Promise<void> {
         ? actionableTasks.map((t) => t.id)
         : undefined;
 
-      const parallelExecutor = new ParallelExecutor(config, tracker, {
+      const parallelExecutor = new ParallelExecutorDAG(config, tracker, {
         maxWorkers,
         worktreeDir: storedConfig?.parallel?.worktreeDir,
         directMerge,
