@@ -170,7 +170,11 @@ async function handleMergeFailure(
 
   if (currentCount < exec.cfg.maxRequeueCount) {
     // Has retry budget — move task back to ready
+    // Must fail() first to take it out of running state, then retry() to
+    // move from failed → ready. Without fail(), the task stays in running
+    // and nextReady() skips it even though it's also in the ready set.
     exec.requeueCounts.set(id, currentCount + 1);
+    exec.scheduler!.fail(id);
     exec.scheduler!.retry(id);
     try { await exec.tracker.updateTaskStatus(id, 'open'); } catch { /* non-fatal */ }
   } else {
